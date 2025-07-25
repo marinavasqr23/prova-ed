@@ -1,0 +1,233 @@
+# Classe que representa um time com nome e ranking
+class Time:
+    def __init__(self, nome, ranking):
+        self.nome = nome
+        self.ranking = ranking
+
+    def __str__(self):
+        return f"Time: {self.nome} | Ranking: {self.ranking}"
+
+
+# Classe que representa um nó da árvore binária (BST)
+class Node:
+    def __init__(self, time):
+        self.time = time  # Armazena um objeto Time
+        self.left = None  # Filho esquerdo
+        self.right = None  # Filho direito
+
+
+# Classe que gerencia o campeonato (árvore binária com base no ranking)
+class Campeonato:
+    def __init__(self):
+        self.root = None  # Raiz da árvore
+
+    # Método para inserir um novo time na árvore
+    def inserir(self, time):
+        def _inserir(node, time):
+            if node is None:
+                return Node(time)
+            if time.ranking < node.time.ranking:
+                node.left = _inserir(node.left, time)
+            else:
+                node.right = _inserir(node.right, time)
+            return node
+
+        self.root = _inserir(self.root, time)
+
+    # Busca por nome (sem usar ranking)
+    def buscar_por_nome(self, nome):
+        def _buscar(node):
+            if node is None:
+                return None
+            if nome == node.time.nome:
+                return node.time
+            left = _buscar(node.left)
+            if left:
+                return left
+            return _buscar(node.right)
+        return _buscar(self.root)
+
+    # Busca por ranking (utiliza a propriedade de BST)
+    def buscar_por_ranking(self, ranking):
+        def _buscar(node):
+            if node is None:
+                return None
+            if ranking == node.time.ranking:
+                return node.time
+            elif ranking < node.time.ranking:
+                return _buscar(node.left)
+            else:
+                return _buscar(node.right)
+        return _buscar(self.root)
+
+    # Remove um time com base no ranking
+    def remover(self, ranking):
+        def _remover(node, ranking):
+            if node is None:
+                return None
+            if ranking < node.time.ranking:
+                node.left = _remover(node.left, ranking)
+            elif ranking > node.time.ranking:
+                node.right = _remover(node.right, ranking)
+            else:
+                if node.left is None:
+                    return node.right
+                elif node.right is None:
+                    return node.left
+                else:
+                    # Substitui pelo menor da subárvore direita
+                    temp = node.right
+                    while temp.left:
+                        temp = temp.left
+                    node.time = temp.time
+                    node.right = _remover(node.right, temp.time.ranking)
+            return node
+
+        self.root = _remover(self.root, ranking)
+
+    # Percurso em ordem (esquerda, raiz, direita)
+    def in_ordem(self):
+        def _in_ordem(node):
+            if node:
+                _in_ordem(node.left)
+                print(node.time)
+                _in_ordem(node.right)
+        _in_ordem(self.root)
+
+    # Percurso pré-ordem (raiz, esquerda, direita)
+    def pre_ordem(self):
+        def _pre_ordem(node):
+            if node:
+                print(node.time)
+                _pre_ordem(node.left)
+                _pre_ordem(node.right)
+        _pre_ordem(self.root)
+
+    # Percurso pós-ordem (esquerda, direita, raiz)
+    def pos_ordem(self):
+        def _pos_ordem(node):
+            if node:
+                _pos_ordem(node.left)
+                _pos_ordem(node.right)
+                print(node.time)
+        _pos_ordem(self.root)
+
+    # Método que simula um combate entre times na árvore
+    def combate(self, ranking):
+        # Busca o nó e seu pai
+        def _buscar_com_pai(node, parent):
+            if node is None:
+                return None, None
+            if ranking == node.time.ranking:
+                return node, parent
+            elif ranking < node.time.ranking:
+                return _buscar_com_pai(node.left, node)
+            else:
+                return _buscar_com_pai(node.right, node)
+
+        node, pai = _buscar_com_pai(self.root, None)
+
+        if node is None:
+            print("Time não encontrado.")
+            return
+
+        # Se tiver dois filhos: combate entre os filhos
+        if node.left and node.right:
+            print(f"Combate entre filhos de {node.time.nome}: {node.left.time.nome} vs {node.right.time.nome}")
+            return
+        elif node.left:
+            print(f"Combate entre {node.time.nome} e seu filho {node.left.time.nome}")
+            return
+        elif node.right:
+            print(f"Combate entre {node.time.nome} e seu filho {node.right.time.nome}")
+            return
+
+        # Se não tiver filhos, verifica o pai
+        if pai:
+            if pai.left and pai.right:
+                if pai.left == node:
+                    print(f"Combate entre irmãos: {node.time.nome} vs {pai.right.time.nome}")
+                else:
+                    print(f"Combate entre irmãos: {pai.left.time.nome} vs {node.time.nome}")
+            else:
+                print(f"Combate entre {node.time.nome} e seu pai {pai.time.nome}")
+        else:
+            print(f"{node.time.nome} é a raiz e não possui combatente direto.")
+
+
+# Função para interação com o usuário via terminal
+def menu():
+    campeonato = Campeonato()
+
+    # Lista de times iniciais
+    times_iniciais = [
+        Time("Fúria", 8), Time("Red Canids", 4), Time("LOUD", 5), Time("MIBR", 11),
+        Time("Pain", 1), Time("Fluxo", 9), Time("Keyd", 12), Time("INTZ", 15)
+    ]
+
+    # Insere os times na árvore
+    for t in times_iniciais:
+        campeonato.inserir(t)
+
+    # Menu principal
+    while True:
+        print("\n====== CAMPEONATO DE TIMES ======")
+        print("1. Inserir novo time")
+        print("2. Remover time por ranking")
+        print("3. Buscar time por nome")
+        print("4. Buscar time por ranking")
+        print("5. Mostrar percurso in-ordem")
+        print("6. Mostrar percurso pré-ordem")
+        print("7. Mostrar percurso pós-ordem")
+        print("8. Ver combate de um time")
+        print("0. Sair")
+        opcao = input("Escolha uma opção: ")
+
+        if opcao == "1":
+            nome = input("Digite o nome do time: ")
+            ranking = int(input("Digite o ranking (inteiro): "))
+            campeonato.inserir(Time(nome, ranking))
+            print("Time inserido com sucesso!")
+
+        elif opcao == "2":
+            ranking = int(input("Digite o ranking do time a ser removido: "))
+            campeonato.remover(ranking)
+            print("Time removido (se existia).")
+
+        elif opcao == "3":
+            nome = input("Digite o nome do time: ")
+            time = campeonato.buscar_por_nome(nome)
+            print(time if time else "Time não encontrado.")
+
+        elif opcao == "4":
+            ranking = int(input("Digite o ranking: "))
+            time = campeonato.buscar_por_ranking(ranking)
+            print(time if time else "Time não encontrado.")
+
+        elif opcao == "5":
+            print("\n--- In-Ordem ---")
+            campeonato.in_ordem()
+
+        elif opcao == "6":
+            print("\n--- Pré-Ordem ---")
+            campeonato.pre_ordem()
+
+        elif opcao == "7":
+            print("\n--- Pós-Ordem ---")
+            campeonato.pos_ordem()
+
+        elif opcao == "8":
+            ranking = int(input("Digite o ranking do time a ser analisado: "))
+            campeonato.combate(ranking)
+
+        elif opcao == "0":
+            print("Saindo do sistema...")
+            break
+
+        else:
+            print("Opção inválida. Tente novamente.")
+
+
+# Executa o programa principal
+if __name__ == "__main__":
+    menu()
