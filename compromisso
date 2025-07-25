@@ -1,0 +1,158 @@
+# Classe que representa um compromisso com data e descrição
+class Compromisso:
+    def __init__(self, data, descricao):
+        self.data = data  # formato "AAAA-MM-DD"
+        self.descricao = descricao
+
+    def __str__(self):
+        return f"{self.data}: {self.descricao}"
+
+
+# Nó da árvore binária, contendo um compromisso
+class NoAgenda:
+    def __init__(self, compromisso):
+        self.compromisso = compromisso  # Objeto Compromisso
+        self.left = None   # Filho à esquerda (datas menores)
+        self.right = None  # Filho à direita (datas maiores)
+
+
+# Classe principal que gerencia a árvore de compromissos
+class Agenda:
+    def __init__(self):
+        self.root = None  # Raiz da árvore
+
+    # Insere um novo compromisso na árvore (baseado na data)
+    def inserir(self, compromisso):
+        def _inserir(node, compromisso):
+            if node is None:
+                return NoAgenda(compromisso)
+            if compromisso.data < node.compromisso.data:
+                node.left = _inserir(node.left, compromisso)
+            else:
+                node.right = _inserir(node.right, compromisso)
+            return node
+
+        self.root = _inserir(self.root, compromisso)
+
+    # Remove um compromisso pela data
+    def remover(self, data):
+        def _min(node):
+            atual = node
+            while atual.left:
+                atual = atual.left
+            return atual
+
+        def _remover(node, data):
+            if node is None:
+                return None
+            if data < node.compromisso.data:
+                node.left = _remover(node.left, data)
+            elif data > node.compromisso.data:
+                node.right = _remover(node.right, data)
+            else:
+                # Nó com 1 ou nenhum filho
+                if node.left is None:
+                    return node.right
+                elif node.right is None:
+                    return node.left
+                # Nó com dois filhos: substitui pelo menor da direita
+                temp = _min(node.right)
+                node.compromisso = temp.compromisso
+                node.right = _remover(node.right, temp.compromisso.data)
+            return node
+
+        self.root = _remover(self.root, data)
+
+    # Busca um compromisso por data
+    def buscar(self, data):
+        def _buscar(node, data):
+            if node is None:
+                return None
+            if data == node.compromisso.data:
+                return node.compromisso
+            elif data < node.compromisso.data:
+                return _buscar(node.left, data)
+            else:
+                return _buscar(node.right, data)
+
+        return _buscar(self.root, data)
+
+    # Mostra todos os compromissos em ordem de data
+    def listar(self):
+        def _em_ordem(node):
+            if node:
+                _em_ordem(node.left)
+                print(node.compromisso)
+                _em_ordem(node.right)
+        _em_ordem(self.root)
+
+    # Mostra a estrutura da árvore de forma "gráfica" no terminal
+    def print_estrutura(self, node=None, prefix="", is_left=True):
+        if node is None:
+            node = self.root
+        if node.right:
+            self.print_estrutura(node.right, prefix + ("│   " if is_left else "    "), False)
+        print(prefix + ("└── " if is_left else "┌── ") + f"{node.compromisso.data}")
+        if node.left:
+            self.print_estrutura(node.left, prefix + ("    " if is_left else "│   "), True)
+
+
+# Menu de interação com o usuário
+def menu_agenda():
+    agenda = Agenda()
+
+    while True:
+        print("\n=== AGENDA DE COMPROMISSOS ===")
+        print("1. Adicionar compromisso")
+        print("2. Remover compromisso")
+        print("3. Buscar por data")
+        print("4. Listar compromissos em ordem")
+        print("5. Mostrar árvore")
+        print("0. Sair")
+
+        opcao = input("Escolha uma opção: ")
+
+        if opcao == "1":
+            # Entrada de compromisso
+            data = input("Data (AAAA-MM-DD): ")
+            desc = input("Descrição: ")
+            agenda.inserir(Compromisso(data, desc))
+            print("Compromisso adicionado.")
+
+        elif opcao == "2":
+            # Remove compromisso
+            data = input("Data a remover: ")
+            agenda.remover(data)
+            print("Removido (se existia).")
+
+        elif opcao == "3":
+            # Busca compromisso
+            data = input("Data a buscar: ")
+            resultado = agenda.buscar(data)
+            print(resultado if resultado else "Não encontrado.")
+
+        elif opcao == "4":
+            # Lista em ordem cronológica
+            print("\n--- Lista cronológica ---")
+            agenda.listar()
+
+        elif opcao == "5":
+            # Mostra estrutura da árvore
+            print("\n--- Estrutura da Árvore ---")
+            if agenda.root:
+                agenda.print_estrutura()
+            else:
+                print("Agenda vazia.")
+
+        elif opcao == "0":
+            # Sai do programa
+            print("Saindo da agenda.")
+            break
+
+        else:
+            print("Opção inválida.")
+
+
+# Executa o programa principal
+if __name__ == "__main__":
+    menu_agenda()
