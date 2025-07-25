@@ -1,0 +1,175 @@
+class Livro:
+    def __init__(self, titulo, codigo):
+        self.titulo = titulo
+        self.codigo = codigo
+
+    def __str__(self):
+        return f"Livro: {self.titulo} | Código: {self.codigo}"
+
+
+class Node:
+    def __init__(self, livro):
+        self.livro = livro
+        self.left = None
+        self.right = None
+
+
+class Biblioteca:
+    def __init__(self):
+        self.root = None
+
+    def inserir(self, livro):
+        def _inserir(node, livro):
+            if node is None:
+                return Node(livro)
+            if livro.codigo < node.livro.codigo:
+                node.left = _inserir(node.left, livro)
+            else:
+                node.right = _inserir(node.right, livro)
+            return node
+
+        self.root = _inserir(self.root, livro)
+
+    def remover(self, codigo):
+        def _remover(node, codigo):
+            if node is None:
+                return None
+            if codigo < node.livro.codigo:
+                node.left = _remover(node.left, codigo)
+            elif codigo > node.livro.codigo:
+                node.right = _remover(node.right, codigo)
+            else:
+                if node.left is None:
+                    return node.right
+                elif node.right is None:
+                    return node.left
+                else:
+                    sucessor = node.right
+                    while sucessor.left:
+                        sucessor = sucessor.left
+                    node.livro = sucessor.livro
+                    node.right = _remover(node.right, sucessor.livro.codigo)
+            return node
+
+        self.root = _remover(self.root, codigo)
+
+    def buscar_por_codigo(self, codigo):
+        def _buscar(node):
+            if node is None:
+                return None
+            if codigo == node.livro.codigo:
+                return node.livro
+            elif codigo < node.livro.codigo:
+                return _buscar(node.left)
+            else:
+                return _buscar(node.right)
+        return _buscar(self.root)
+
+    def buscar_por_titulo(self, titulo):
+        def _buscar(node):
+            if node is None:
+                return None
+            if titulo == node.livro.titulo:
+                return node.livro
+            esq = _buscar(node.left)
+            if esq:
+                return esq
+            return _buscar(node.right)
+        return _buscar(self.root)
+
+    def in_ordem(self):
+        def _in_ordem(node):
+            if node:
+                _in_ordem(node.left)
+                print(node.livro)
+                _in_ordem(node.right)
+        _in_ordem(self.root)
+
+    def pre_ordem(self):
+        def _pre_ordem(node):
+            if node:
+                print(node.livro)
+                _pre_ordem(node.left)
+                _pre_ordem(node.right)
+        _pre_ordem(self.root)
+
+    def pos_ordem(self):
+        def _pos_ordem(node):
+            if node:
+                _pos_ordem(node.left)
+                _pos_ordem(node.right)
+                print(node.livro)
+        _pos_ordem(self.root)
+
+
+def menu():
+    biblioteca = Biblioteca()
+    livros_iniciais = [
+        Livro("Dom Casmurro", 200),
+        Livro("1984", 150),
+        Livro("O Senhor dos Anéis", 300),
+        Livro("O Pequeno Príncipe", 100),
+        Livro("A Revolução dos Bichos", 250),
+        Livro("Harry Potter", 350),
+        Livro("It - A Coisa", 400),
+        Livro("Cem Anos de Solidão", 500)
+    ]
+
+    for livro in livros_iniciais:
+        biblioteca.inserir(livro)
+
+    while True:
+        print("\n===== BIBLIOTECA DIGITAL =====")
+        print("1. Inserir novo livro")
+        print("2. Remover livro por código")
+        print("3. Buscar livro por título")
+        print("4. Buscar livro por código")
+        print("5. Mostrar livros in-ordem")
+        print("6. Mostrar livros pré-ordem")
+        print("7. Mostrar livros pós-ordem")
+        print("0. Sair")
+        opcao = input("Escolha uma opção: ")
+
+        if opcao == "1":
+            titulo = input("Digite o título do livro: ")
+            codigo = int(input("Digite o código de classificação (1 a 1000): "))
+            biblioteca.inserir(Livro(titulo, codigo))
+            print("Livro inserido com sucesso!")
+
+        elif opcao == "2":
+            codigo = int(input("Digite o código do livro a ser removido: "))
+            biblioteca.remover(codigo)
+            print("Livro removido (se existia).")
+
+        elif opcao == "3":
+            titulo = input("Digite o título do livro: ")
+            livro = biblioteca.buscar_por_titulo(titulo)
+            print(livro if livro else "Livro não encontrado.")
+
+        elif opcao == "4":
+            codigo = int(input("Digite o código: "))
+            livro = biblioteca.buscar_por_codigo(codigo)
+            print(livro if livro else "Livro não encontrado.")
+
+        elif opcao == "5":
+            print("\n--- Livros em In-Ordem ---")
+            biblioteca.in_ordem()
+
+        elif opcao == "6":
+            print("\n--- Livros em Pré-Ordem ---")
+            biblioteca.pre_ordem()
+
+        elif opcao == "7":
+            print("\n--- Livros em Pós-Ordem ---")
+            biblioteca.pos_ordem()
+
+        elif opcao == "0":
+            print("Saindo do sistema...")
+            break
+
+        else:
+            print("Opção inválida. Tente novamente.")
+
+
+if __name__ == "__main__":
+    menu()
